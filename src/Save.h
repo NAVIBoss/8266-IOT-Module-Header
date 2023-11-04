@@ -23,7 +23,7 @@ delay(10);
 #endif
 uint16_t addr = 4095;
 #if defined ledIndikator_Enable
-Led.SaveInd=1;
+Led.Save_I=1;
 #endif
 EEPROM.put (addr, 'x');
 addr = 0;
@@ -82,14 +82,14 @@ topicPresent=0; for_i(0,10) if(strcmp(save.LEDTopic[i],"")) topicPresent=1;
 if(topicPresent) {for_i(0,10) {if(strcmp(save.LEDTopic[i],"")) {CM("Включать LED топик "); CM(i); CM(": "); CMn(save.LEDTopic[i]);}}
 } else CMn("Не контролим LED топики");
 
-if(save.LEDControl) CMn("Контролим LED квартиры"); else CMn("Не контролим LED квартиры");
+CMn(save.LEDControl ? "Контролим LED квартиры" : "Не контролим LED квартиры");
 #endif
 
-CM("Дублировать команды в 0 топик: "); if(save.CommandToTopic0) CMn("Да"); else CMn("Нет");
+CM("Дублировать команды в 0 топик: "); CMn(save.CommandToTopic0 ? "Да" : "Нет");
 
-CM("ESP модуль: "); if (save.MASTER_ESP) CMn("MASTER"); else CMn("SLAVE");
+CM("ESP модуль: "); CMn(save.MASTER_ESP ? "MASTER" : "SLAVE");
 #endif
-CM("Авто режим: "); if(save.autoMode) CMn("Включен"); else CMn("Отключен");
+CM("Авто режим: "); CMn(save.autoMode ? "Включен" : "Отключен");
 CM("Время StandBy режима: "); CM(save.standByTime); CMn(" сек.");
 CM("Время StandByShot режима: "); CM(save.standByShotTime); CMn(" сек.");
 CM("Время StandByQuick режима: "); CM(save.standByQuickTime); CMn(" сек.");
@@ -100,27 +100,30 @@ CM("Дежурная работа вытяжки после выкл света:
 if(save.pressSpeed < 0.8) save.pressSpeed=0.8; if(save.pressSpeed > 4) save.pressSpeed=4; char value[7]; dtostrf(save.pressSpeed,1,2,value);
 CM("Задержка кнопки: "); CM(value); CM(" : "); dtostrf(500*save.pressSpeed,1,0,value); CM(value); CMn("мсек.");
 #endif
+#if defined BuzerEnable
+CMn(save.buzer ? "Buzer Enable" : "Buzer Disable");
+#endif
 #if defined MasterSceneKitchen
-CM("Движ возле мойки: "); if(save.MotionWashEnable) CMn("Учитывать"); else CMn("Игнорить");
+CM("Движ возле мойки: "); CMn(save.MotionWashEnable ? "Учитывать" : "Игнорить");
 CM("Свет возле мойки на: "); CM(save.MotionWashTime); CMn(" сек.");
 #endif
 #if defined MotionSens_Enable
-CM("Реагировать на движение: "); if(save.MotionDetectEnable) CMn("Да"); else CMn("Нет");
+CM("Реагировать на движение: "); CMn(save.MotionDetectEnable ? "Да" : "Нет");
 CM("Игнорировать движение: "); CM(save.MotionIgnore); CMn(" сек.");
 CM("Память движения: "); CM(save.MotionOnMemory); CMn(" сек.");
 #else
 if (save.MASTER_ESP) {
-CM("Реагировать на движение: "); if(save.MotionDetectEnable) CMn("Да"); else CMn("Нет");
+CM("Реагировать на движение: "); CMn(save.MotionDetectEnable ? "Да" : "Нет");
 CM("Игнорировать движение: "); CM(save.MotionIgnore); CMn(" сек.");
 CM("Память движения: "); CM(save.MotionOnMemory); CMn(" сек.");}
 #endif
 #if defined MotionSens_Enable && defined PresenceSens_Enable
-CM("Реагировать на присутствие: "); if(save.PresenceDetectEnable) CMn("Да"); else CMn("Нет");
+CM("Реагировать на присутствие: "); CMn(save.PresenceDetectEnable ? "Да" : "Нет");
 CM("Игнорировать присутствие: "); CM(save.PresenceIgnore); CMn(" сек.");
 CM("Память присутствия: "); CM(save.PresenceOnMemory); CMn(" сек.");
 #endif
 #if defined Vibro_Enable
-if(save.VibroDetectEnable) CMn("Реагировать на сенсор"); else CMn("Не реагировать на сенсор");
+CMn(save.VibroDetectEnable ? "Реагировать на сенсор" : "Не реагировать на сенсор");
 CM("Игнорим после сработки: "); CM(save.timeIgnoreVibroEvent); CMn(" сек.");
 CM("Порог сработки: "); CMn(save.vibroLevel);
 CM("Добавляем вибро на "); CM(save.vibroTimePlus); CMn(" мин.");
@@ -138,7 +141,7 @@ CM("Макс до след шагов: "); CM(save.maxNext); CMn(" сек.");
 CM("Color: "); CMn(save.hexColor);
 CM("Favorite Color: "); CMn(save.favoriteColor);
 CM("Bright Color: "); CMn(save.brightColor);
-CM("Gamma Correction: "); if(save.GammaCorrection) CMn("ON"); else CMn("OFF");
+CM("Gamma Correction: "); CMn(save.GammaCorrection ? "ON" : "OFF");
 CM("StartMode: "); if (save.StartMode == 0) CMn("Restore state"); else if (save.StartMode == 1) CMn("Turn OFF");
 else if (save.StartMode == 2) CMn("Favorite Color");
 CM("Fade delay: "); CM(save.FadeDelay); CMn(" ms");
@@ -152,7 +155,7 @@ CM("StartMode module"); CM(t); CM(": "); if (save.StartMode[t] == 0) CMn("Restor
 else if (save.StartMode[t] == 2) CMn("Favorite Color");
 }
 CM("Fade delay: "); CM(save.FadeDelay); CMn(" ms");
-CM("Gamma Correction: "); if(save.GammaCorrection) CMn("ON"); else CMn("OFF");
+CM("Gamma Correction: "); CMn(save.GammaCorrection ? "ON" : "OFF");
 #endif
 #if defined Cold_Warm_LED_Enable
 CM("ColdWarm: "); CM(save.ColdWarm); CMn(" %");

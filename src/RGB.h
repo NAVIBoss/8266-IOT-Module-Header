@@ -177,13 +177,13 @@ goSave:
 #if defined EEPROM_Enable
 CMn("Есть изменения данных. Сохраняем данные");
 #if defined ledIndikator_Enable
-Led.SaveInd=1;
+Led.Save_I=1;
 #endif
 saveChange=1;
 #endif
 }
 
-void XIIIMRGB::ChangeColor() {return1sec; uint8_t Value[3];
+void XIIIMRGB::ChangeColor() {returnSec(1); uint8_t Value[3];
 for_i(0,3) Value[i]=random(5,180); CM("Red: "); CM(Value[0]); CM(" Green: "); CM(Value[1]); CM(" Blue: "); CM(Value[2]);
 char hex[8] = {0}, hexColor[8]={"#"}; sprintf(hex,"%02X%02X%02X",Value[0],Value[1],Value[2]); CM(" HEX: "); CMn(hex);
 strcat(hexColor,hex); HEXtoRGB(hexColor);}

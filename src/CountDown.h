@@ -162,9 +162,9 @@ RELAY_Value_[2] = 0; saveRelay=1; MQTTStatus4("Relay",2,RELAY_Value_[2],"Relay")
 #endif
 
 void XIIIMCount::loop() {
-StandByCountDown();
-StandByShotCountDown();
-StandByQuickCountDown();
+if(save.standByTime) StandByCountDown();
+if(save.standByShotTime) StandByShotCountDown();
+if(save.standByQuickTime) StandByQuickCountDown();
 #if defined MasterSceneKitchen
 WashCountDown();
 #endif

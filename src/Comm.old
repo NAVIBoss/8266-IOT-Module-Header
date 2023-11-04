@@ -11,10 +11,8 @@ WiFiClient wclient;
 #define _WIFI_PASSWORD "cdtnbr1973"             // пароль WiFi по умолчанию
 
 #if defined MQTT_SendEnable
-#include <Ticker.h>
-#include <AsyncMqttClient.h>
-AsyncMqttClient mqttClient;
-Ticker mqttReconnectTimer;
+#include <PubSubClient.h>
+PubSubClient mqttClient(wclient);
 #define mqtt_server "192.168.1.35"              // IP сервера MQTT
 #define mqtt_user "MQTT"
 #define mqtt_pass "cdtnbr"
@@ -70,8 +68,8 @@ boolean wrongWiFi;
 uint32_t wrongWiFiTime;
 // -------------------------------------------------------------------------- Private function -----------------------------------------------------------------------
 #if defined MQTT_SendEnable
-void sendMQTT(const char* param, const char* value) {char topicSend[50]; strcpy(topicSend,ESPName); strcat(topicSend,"/Status/"); strcat(topicSend,param); mqttClient.publish(topicSend, 1, false, value); CM("-в-> MQTT: "); CM(topicSend); CM(": "); CMn(value);};
-void commMQTT(const char* param, const char* value) {mqttClient.publish(param, 1, false, value); CM("-в-> MQTT: "); CM(param); CM(": "); CMn(value);}
+void sendMQTT(const char* param, const char* value) {char topicSend[50]; strcpy(topicSend,ESPName); strcat(topicSend,"/Status/"); strcat(topicSend,param); mqttClient.publish(topicSend,value); CM("-в-> MQTT: "); CM(topicSend); CM(": "); CMn(value);};
+void commMQTT(const char* param, const char* value) {mqttClient.publish(param,value); CM("-в-> MQTT: "); CM(param); CM(": "); CMn(value);}
 void getMQTT();
 void ESP_MasterSlave();
 #if defined GlobalHouseSwitch || defined MasterBedRoom
@@ -81,58 +79,14 @@ void SyncLEDtopics();
 #endif
 };
 
-#if defined MQTT_SendEnable
-void connectToMqtt() {CMn("\nПодключаемся с MQTT..."); mqttClient.connect();}
-void onMqttConnect(bool sessionPresent) {CMn("MQTT сервер подключен"); char topic[50]; strcpy(topic,ESPName); strcat(topic,"/Command/#"); mqttClient.subscribe(topic,1); CM("Подписываемся на: "); CMn(topic);
-#if defined ESP_EEPROM_Enable
-#if defined GlobalHouseSwitch
-mqttClient.subscribe("+/Status/Relay0",1); CMn("Подписываемся на все топики со Status/RelayX");
-mqttClient.subscribe("+/Status/Relay1",1);
-mqttClient.subscribe("+/Status/Relay2",1);
-mqttClient.subscribe("+/Status/Relay3",1);
-mqttClient.subscribe("+/Status/Relay4",1);
-mqttClient.subscribe("+/Status/Relay5",1);
-//mqttClient.subscribe("BedroomCO2/Status/AutoMode",1); CMn("Подписываемся на BedroomCO2/Status/AutoMode");
-//mqttClient.subscribe("+/Status/MotionSensor",1); CMn("Подписываемся на все топики со Status/MotionSensor");
-mqttClient.subscribe("+/Status/SCENE",1); CMn("Подписываемся на все топики со Status/SCENE");
-mqttClient.subscribe("+/Status/IP",1); CMn("Подписываемся на все топики со Status/IP");
-if (strcmp(save.controlTopic[0],"")) {strcpy(topic,save.controlTopic[0]); strcat(topic,"/Status/#"); mqttClient.subscribe(topic,1); CM("Подписываемся на: "); CMn(topic);}
-//for_i(0,30) {if (strcmp(save.controlTopic[i],"")) {strcpy(topic,save.controlTopic[i]); strcat(topic,"/Command/#"); mqttClient.subscribe(topic,1); CM("Подписываемся на: "); CMn(topic);}}
-#else
-for_i(0,10) {if (strcmp(save.controlTopic[i],"")) {strcpy(topic,save.controlTopic[i]); strcat(topic,"/Status/#"); mqttClient.subscribe(topic,1); CM("Подписываемся на: "); CMn(topic);}}
-#endif
-#if defined GlobalHouseSwitch || defined MasterBedRoom
-for_t(0,10) {if (strcmp(save.LEDTopic[t],"")) {CM("Подписываемся на: "); CMn(save.LEDTopic[t]); {for_i(0,5) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
-char RelayNUM[2]; itoa(i,RelayNUM,10); strcat(topic,RelayNUM); mqttClient.subscribe(topic,1); CMn(topic);}
-strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/IP"); mqttClient.subscribe(topic,1); CMn(topic);}}}
-#endif
-#endif
-MQTTOk = 1; SendStatus(1);}
-void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {MQTTOk=0; CMn("\nПропало соединение с MQTT"); if(WiFiOk) mqttReconnectTimer.once(2, connectToMqtt);}
-
-void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-for_i(0, len) ReceiveValue[i] = (char)payload[i]; ReceiveValue[len] = '\0';
-CM("=> MQTT: "); CM(topic); CM(" : "); CMn(ReceiveValue);
-//MQTTin(topic, payload, len);
-}
-#endif
-
-void XIIIMCommunicate::getWiFi(uint8_t state=0) {
-#if defined OTAEnable
-if (WiFiOk && OTApossible) ArduinoOTA.handle();
-#endif
-static uint32_t wtime, lastScanMillis; static int32_t rssi;
+void XIIIMCommunicate::getWiFi(uint8_t state=0) {if (WiFiOk && OTApossible) ArduinoOTA.handle(); static uint32_t wtime, lastScanMillis; static int32_t rssi;
 static boolean firstStart, firstScan, scanProcess; static uint8_t beginConnect=1; static char ssidSave[40], ssid[40], pass[40]; static uint8_t failConnect;
 
 if (state==1) {if (!WiFiOk) {IPAddress ip; ip = WiFi.localIP(); WiFiOk=1;
 char Hostname[24] = {"ESP_"}; strcat(Hostname,ESPName); WiFi.hostname(Hostname);
 CM("\n\nСоединились с "); CMn(WiFi.SSID().c_str()); sprintf(IPadress, "ESP IP: %03d.%03d.%03d.%03d", ip[0], ip[1], ip[2], ip[3]);
-CMn(IPadress); beginConnect=1; lastScanMillis=millis(); strcpy(ssidSave, ssid); failConnect=0; 
-#if defined MQTT_SendEnable
-mqttReconnectTimer.once(2, connectToMqtt);
-#endif
-}}
-if (WiFiOk && state==2) {CMn("\nСоединение WiFi потеряно"); rssi=-100; WiFi.disconnect(); WiFiOk = 0; lastScanMillis=millis()-1900000; return;}
+CMn(IPadress); beginConnect=1; lastScanMillis=millis(); strcpy(ssidSave, ssid); failConnect=0;}}
+if (WiFiOk && state==2) {CMn("\nСоединение WiFi потеряно"); rssi=-100; WiFi.disconnect(); WiFiOk = 0; lastScanMillis=millis()-1000000; return;}
 
 if(millis()-wtime<500) return; wtime = millis();
 if(!firstStart) {
@@ -157,7 +111,7 @@ else if (error == OTA_END_ERROR) CMn("End Failed");}); ArduinoOTA.begin();}
 #endif
 firstStart=1;}
 
-if (!firstScan || millis()-lastScanMillis>1800000) { // запускаем сканирование WiFi-сетей:
+if (!firstScan || millis()-lastScanMillis>30000) { // запускаем сканирование WiFi-сетей:
 WiFi.scanNetworks(true); lastScanMillis=millis(); firstScan = 1; scanProcess=1; CMn("\nСканируем WiFi сети... ");}
 
 int8_t n = WiFi.scanComplete();
@@ -175,15 +129,11 @@ if(scanProcess) return;
 
 if(!WiFiOk && !beginConnect) {CM("\nСоединяемся с "); CM(ssid); CMn("..."); WiFi.begin(ssid, pass); failConnect++; if(failConnect>5) {CMn("Restart ESP"); delay(50); ESP.restart();}}
 
-if(!WiFiOk && beginConnect++) {CM("."); lastScanMillis=millis(); if(beginConnect>40) {rssi=-100; lastScanMillis=millis()-1900000;}}}
+if(!WiFiOk && beginConnect++) {CM("."); lastScanMillis=millis(); if(beginConnect>40) {rssi=-100; lastScanMillis=millis()-100000;}}}
+
 
 #if defined MQTT_SendEnable
-XIIIMCommunicate::XIIIMCommunicate() {
-mqttClient.onConnect(onMqttConnect);
-mqttClient.onDisconnect(onMqttDisconnect);
-//mqttClient.onMessage(MQTTRead);
-mqttClient.setCredentials(mqtt_user, mqtt_pass);
-mqttClient.setServer(mqtt_server, mqtt_port);}
+XIIIMCommunicate::XIIIMCommunicate() {mqttClient.setServer(mqtt_server, mqtt_port); mqttClient.setBufferSize(100);}
 
 void XIIIMCommunicate::status(const char* param, const char* value){sendMQTT(param,value);}
 void XIIIMCommunicate::status(const char* param, const char* value, const char* valueAdd){char valueSend[50]; strcpy(valueSend,value); strcpy(valueSend," "); strcat(valueSend,valueAdd); sendMQTT(param,value);}
@@ -207,7 +157,37 @@ void XIIIMCommunicate::getMQTT() {ESP_MasterSlave();
 #if defined GlobalHouseSwitch || defined MasterBedRoom
 SyncLEDtopics();
 #endif
-}
+if(!WiFiOk) return; mqttClient.loop(); static uint32_t MQTTtime; if(millis() - MQTTtime < 100 || mqttClient.connected()) return; char topic[40];
+#if defined GlobalHouseSwitch || defined MasterBedRoom
+#endif
+if (!MQTTOk && millis() - MQTTtime < 5000) return; MQTTtime = millis();
+if(MQTTOk) {if(!mqttClient.connected()) {MQTTOk=0; CMn("\nПропало соединение с MQTT сервером");}}
+else {CMn("\nПодключаемся к MQTT серверу...");
+strcpy(topic,"ESP_"); strcat(topic,ESPName); mqttClient.setCallback(MQTTread);
+if(mqttClient.connect(topic,mqtt_user,mqtt_pass)) {CMn("MQTT сервер подключен"); char topic[50]; strcpy(topic,ESPName); strcat(topic,"/Command/#"); mqttClient.subscribe(topic,0); CM("Подписываемся на: "); CMn(topic);
+#if defined ESP_EEPROM_Enable
+#if defined GlobalHouseSwitch
+mqttClient.subscribe("+/Status/Relay0",0); CMn("Подписываемся на все топики со Status/RelayX");
+mqttClient.subscribe("+/Status/Relay1",0);
+mqttClient.subscribe("+/Status/Relay2",0);
+mqttClient.subscribe("+/Status/Relay3",0);
+mqttClient.subscribe("+/Status/Relay4",0);
+//mqttClient.subscribe("BedroomCO2/Status/AutoMode",0); CMn("Подписываемся на BedroomCO2/Status/AutoMode");
+//mqttClient.subscribe("+/Status/MotionSensor",0); CMn("Подписываемся на все топики со Status/MotionSensor");
+mqttClient.subscribe("+/Status/SCENE",0); CMn("Подписываемся на все топики со Status/SCENE");
+mqttClient.subscribe("+/Status/IP",0); CMn("Подписываемся на все топики со Status/IP");
+if (strcmp(save.controlTopic[0],"")) {strcpy(topic,save.controlTopic[0]); strcat(topic,"/Status/#"); mqttClient.subscribe(topic,0); CM("Подписываемся на: "); CMn(topic);}
+//for_i(0,30) {if (strcmp(save.controlTopic[i],"")) {strcpy(topic,save.controlTopic[i]); strcat(topic,"/Command/#"); mqttClient.subscribe(topic,0); CM("Подписываемся на: "); CMn(topic);}}
+#else
+for_i(0,10) {if (strcmp(save.controlTopic[i],"")) {strcpy(topic,save.controlTopic[i]); strcat(topic,"/Status/#"); mqttClient.subscribe(topic,0); CM("Подписываемся на: "); CMn(topic);}}
+#endif
+#if defined GlobalHouseSwitch || defined MasterBedRoom
+for_t(0,10) {if (strcmp(save.LEDTopic[t],"")) {CM("Подписываемся на: "); CMn(save.LEDTopic[t]); {for_i(0,5) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
+char RelayNUM[2]; itoa(i,RelayNUM,10); strcat(topic,RelayNUM); mqttClient.subscribe(topic,0); CMn(topic);}
+strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/IP"); mqttClient.subscribe(topic,0); CMn(topic);}}}
+#endif
+#endif
+MQTTOk = 1; SendStatus(1);}}}
 
 #if defined GlobalHouseSwitch || defined MasterBedRoom
 void XIIIMCommunicate::SyncLEDtopics() {if(LEDSyncOk || !MQTTOk || !WiFiOk) return; static boolean firstCheckTopics, saveMQTT, saveWiFiOk;
@@ -298,7 +278,7 @@ CM("Повтор сихро в топик: "); CMn(save.controlTopic[topicNum]);
 command(save.controlTopic[topicNum],"Status",1); topicNum++;}
 
 #if defined RelayEnable
-void XIIIMCommunicate::statusRelay() {for_i(0,sizeof(RELAY_Pin_)) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) status("Relay",i,RELAY_Value_[i],"Relay");
+void XIIIMCommunicate::statusRelay() {for_i(0,5) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) status("Relay",i,RELAY_Value_[i],"Relay");
 if(save.CommandToTopic0 && RELAY_Value_Save_[i]!=RELAY_Value_[i]) {command("Relay",i,RELAY_Value_[i],save.controlTopic[0]);}}}
 #endif
 #endif // MQTT_SendEnable

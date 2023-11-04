@@ -128,7 +128,9 @@ if (Btnkf<0.80) Btnkf=0.80; if (Btnkf > 4.00) Btnkf=4.00; startPress=0;
 dtostrf(Btnkf,1,2,value); CM(value); CM(" : "); dtostrf(500*Btnkf,1,0,value); CM(value); CMn(" мсек.");
 dtostrf(Btnkf,1,2,value);} if(!pressEvent) startPress=0;}
 
+
 if (prgMode[2]) {static double saveDelay;
+EVERY_MS(500) {CMn(SCENE);}
 if (SCENE == 1 && shotPress) Btnkf-=0.05;
 if (SCENE == 1 && longPress) Btnkf-=0.20;
 if (SCENE == 2 && shotPress) Btnkf+=0.05;
@@ -149,10 +151,10 @@ if (!pressEvent && !registr) return 0;
 if (!registr && press == -BtnDbSt && pressEvent && (EventEND && millis()-Press_StopTime > 200)) {firstPressUp=0; pressEvent=0; shotPress=0; 
 longPress=0; doublePress=0; secondPress=0; secondPressUP=0; differentKey=0; EventEND=0; return 0;}
 
-if (EventEND && SCENE==16 && !progMode && longPress && millis() - pressStartTime > 3000) {prgMode[0]=1; programInd=1; progMode=1; CMn("Режим программирования 0"); statusScene(32); return 30;}
-if (EventEND && SCENE==17 && !progMode && longPress && millis() - pressStartTime > 3000) {prgMode[1]=1; programInd=1; progMode=1; CMn("Режим программирования 1"); statusScene(33); return 31;}
-if (EventEND && SCENE==19 && !progMode && longPress && millis() - pressStartTime > 3000) {prgMode[2]=1; programInd=1; progMode=1; CMn("Програм-е задержек кнопки"); statusScene(34); return 32;}
-if (EventEND && SCENE==27 && !progMode && longPress && millis() - pressStartTime > 3000) {prgMode[3]=1; programInd=1; progMode=1; CMn("Обучение двойного нажатия"); statusScene(35); return 33;}
+if (EventEND && SCENE==16 && !progMode && millis() - pressStartTime > 3000) {prgMode[0]=1; programInd=1; progMode=1; CMn("Режим программирования 0"); statusScene(32); return 30;}
+if (EventEND && SCENE==17 && !progMode && millis() - pressStartTime > 3000) {prgMode[1]=1; programInd=1; progMode=1; CMn("Режим программирования 1"); statusScene(33); return 31;}
+if (EventEND && SCENE==19 && !progMode && millis() - pressStartTime > 3000) {prgMode[2]=1; programInd=1; progMode=1; CMn("Програм-е задержек кнопки"); statusScene(34); return 32;}
+if (EventEND && SCENE==27 && !progMode && millis() - pressStartTime > 3000) {prgMode[3]=1; programInd=1; progMode=1; CMn("Обучение двойного нажатия"); statusScene(35); return 33;}
 
 if (EventEND) return 0;
 if (press == BtnDbSt && !pressEvent) {pressEvent=1; pressStartTime=millis(); SCENE=0; mScene0=0; mScene1=0;} // нажали 1 раз

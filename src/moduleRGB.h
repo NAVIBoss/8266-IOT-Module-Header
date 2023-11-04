@@ -81,6 +81,7 @@ if(RELAY_Pin_[i]==RGBPIN1) {RELAY_Value_[i]=save.Power[1]; CM("RGB1 Relay"); Rel
 if(RELAY_Pin_[i]==RGBPIN2) {RELAY_Value_[i]=save.Power[2]; CM("RGB2 Relay"); Relay_NUM[2]=i; CM(i); CM(" : "); CMn(RELAY_Value_[i]);}
 if(RELAY_Pin_[i]==RGBPIN3) {RELAY_Value_[i]=save.Power[3]; CM("RGB3 Relay"); Relay_NUM[3]=i; CM(i); CM(" : "); CMn(RELAY_Value_[i]);}
 if(RELAY_Pin_[i]==RGBPIN4) {RELAY_Value_[i]=save.Power[4]; CM("RGB4 Relay"); Relay_NUM[4]=i; CM(i); CM(" : "); CMn(RELAY_Value_[i]);}
+if(RELAY_Pin_[i]==RGBPIN5) {RELAY_Value_[i]=save.Power[4]; CM("RGB5 Relay"); Relay_NUM[5]=i; CM(i); CM(" : "); CMn(RELAY_Value_[i]);}
 }
 
 for_t(0,NUM_LEDS) {
