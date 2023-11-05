@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 #if defined ledIndikator_Enable
-#define syncInd(x) Led.SyncInd=x
+#define syncInd(x) Led.Sync_I0=x
 #else
 #define syncInd(x)
 #endif
@@ -41,7 +41,7 @@ void MotionSensCountDown();
 
 XIIIMMotion::XIIIMMotion(uint8_t PIN) {MotionSens_PIN=PIN; pinMode(MotionSens_PIN, INPUT);}
 
-void XIIIMMotion::EventMoution() {if (!save.MotionDetectEnable) return; if(MotionSensor) {return1sec;} if(!digitalRead(MotionSens_PIN) && !MotionSensor) return; boolean ctrlTopic=0;
+void XIIIMMotion::EventMoution() {if (!save.MotionDetectEnable) return; if(MotionSensor) {returnSec(1);} if(!digitalRead(MotionSens_PIN) && !MotionSensor) return; boolean ctrlTopic=0;
 if(millis()-timeMotionIgnore<save.MotionIgnore*1000) {CMn("Игнорим движение"); return;}
 if (digitalRead(MotionSens_PIN)) motionStart=millis();
 if(ctrlTopic) MQTTStatus("MotionSensor",MotionSensor); // отсылаем каждую сек для топика
@@ -63,7 +63,7 @@ WorkZoneLight=1; RELAY_Value_[2]=1; saveRelay=1; CMn("Вкл подсветку 
 #endif
 }}
 
-void XIIIMMotion::MotionSensCountDown() {if(!MotionSensor) return; return1sec; uint8_t MotionOnMemory = 3;
+void XIIIMMotion::MotionSensCountDown() {if(!MotionSensor) return; returnSec(1); uint8_t MotionOnMemory = 3;
 static uint32_t sec; static uint8_t saveVal, roundVal; static boolean min; boolean ctrlTopic=0;
 #if defined EEPROM_Enable
 MotionOnMemory=save.MotionOnMemory;

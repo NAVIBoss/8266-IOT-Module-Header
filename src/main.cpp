@@ -1,4 +1,4 @@
-#define ESPName "BedRoomRGBWindow"                  // топик MQTT для отправки сообщений (Command, Status) max 20 символов
+#define ESPName "BedroomCO2"                  // топик MQTT для отправки сообщений (Command, Status) max 20 символов
 #define FirmwareVersion "6.0"                   // версия прошивки
 
 #define clearMemory                           // записать в память начальные параметры
@@ -7,37 +7,37 @@
 #define ESP_EEPROM_Enable                     // сохранение данных в EPS8266
 #define MQTT_SendEnable                       // отправка данных в MQTT
 #define OTAEnable                             // прошивка по воздуху
-//#define ledIndikator_Enable                   // индикация режимов работы
+#define ledIndikator_Enable                   // индикация режимов работы
 //#define led3ColorIndikator_Enable             // индикация режимов работы для 2 RGB светодиодов в выключателе
-#define MonoIndikator                         // индикация только синим
-#define InverseOutIndikator                   // инвертировать выход индикаторов (для внутреннего и 3 цвета)
+//#define MonoIndikator                         // индикация только синим
+//#define InverseOutIndikator                   // инвертировать выход индикаторов (для внутреннего и 3 цвета)
 //#define BH1750_Enable                         // датчик освещенности
 //#define MAX44009_Enabled                      // датчик освещенности
 //#define VL6180X_Enable                        // определение взмаха рука по датчику VL6180X
-//#define BME280_Enable                         // датчик температуры, влажности, давления
+#define BME280_Enable                         // датчик температуры, влажности, давления
 //#define AM2301A_Enabled                       // датчик температуры, влажности
 //#define AM2320_Enabled                        // датчик температуры, влажности
-//#define S8_CO2_Enable                         // датчик углекислого газа
+#define S8_CO2_Enable                         // датчик углекислого газа
 //#define HX711_Enable                          // тензодатчик
 //#define Vibro_Enable                          // датчик вибрации (сенсор PIN 2, Реле PIN 3)
 //#define PZEM004T_Enable                       // датчик нарпяжения и тока PZEM004T
 //#define ButtonEnable                          // управление c кнопок
 //#define BuzerEnable                           // озвучивание нажатия кнопок в выключателе
-//#define MotionSens_Enable                     // датчик движения
+#define MotionSens_Enable                     // датчик движения
 //#define PresenceSens_Enable                   // датчик присутствия - учитывается только после оработки датчика движения
 //#define MasterSceneLivingRoom                 // сцены управления в зале | спальне
 //#define MasterSceneKitchen                    // сцены управления на кухне
 //#define MasterSceneCorridor
 //#define GlobalHouseSwitch                     // сцены управления всей квартирой в коридоре (кнопка на входе)
 //#define BadRoomRGBRule_Enable                 // для спальни - откл светодиоды, если вкл яркий свет и наоборот
-//#define MasterBedRoom                         // сцены управления в спальне (LED подсветка по всей квартире) - модуль CO2
+#define MasterBedRoom                         // сцены управления в спальне (LED подсветка по всей квартире) - модуль CO2
 //#define MasterBathRoom                        // сцены управления ванной
 #define RelayEnable                           // управление реле
 //#define CommandToRelay                        // выполнять команды реле напрямую
 #define InverseOutRelay                       // когда 0 - реле замкнуто
 //#define IRSens_Enable                         // ИК датчик приближения (взмаха) руки
 //#define kitchenVent_Enable                    // вентилятор на вытяжке (по взмаху) 2-LED 12-Sens n,n,4,n,5-Relay(x)
-#define RGB_LED_Enable                        // подсветка RGB управление по Relay(x) - nPIN,nPIN,RGBPIN - Relay2
+//#define RGB_LED_Enable                        // подсветка RGB управление по Relay(x) - nPIN,nPIN,RGBPIN - Relay2
 //#define RGB_MODULE_LED_Enable                 // подсветка RGB управление модулями по Relay(x) - nPIN,nPIN,RGBPIN0 - Relay2
 
 //#define Cold_Warm_LED_Enable                  // светодиодный светильник Cold-Warm Relay0 - CWPIN
@@ -217,7 +217,7 @@ uint8_t RELAY_Value_Save_[] = {0,0,0,0,0,0};    // сохраненные сос
 #endif
 
 #if defined RelayEnable
-uint8_t RELAY_Pin_[] = {nPIN,nPIN,nPIN,nPIN,nPIN,RGBPIN};    					// управление реле - для ESP8266-01 - только 0,3 работают с SSD-DC | nPIN - вирт пин
+uint8_t RELAY_Pin_[] = {nPIN,nPIN,nPIN,nPIN,nPIN,RGBPIN};    					// управление реле - для ESP8266-01 - только 0,3 работают с SSD-DC | nPIN - вирт пин | RGBPIN - RGB
 boolean saveRelay = 0;                          // сохранение состояний реле только после отсылки статуса
 #endif
 
@@ -350,10 +350,10 @@ boolean LEDControl=1;                           // управлять LED под
 XIIIMLED Led(2);                                // BUILTIN_LED
 #else
 #if defined led3ColorIndikator_Enable
-XIIIMLED Led(5,3,1,12,14,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
-//XIIIMLED Led(12,14,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
+//XIIIMLED Led(5,3,1,12,14,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
+XIIIMLED Led(13,12,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
 #else
-XIIIMLED Led(3,5);                            // ([Синий PIN][, красный PIN]) без параметров - BUILTIN_LED
+XIIIMLED Led(13,15);                            // ([Синий PIN][, красный PIN]) без параметров - BUILTIN_LED
 #endif
 #endif
 #define SyncInd(x) Led.Sync_I0=x; Led.Sync_I1=x
@@ -466,7 +466,7 @@ XIIIMPresence Presen(16);                      // PIN сенсора прису�
 
 #if defined MotionSens_Enable
 #include "Motion.h"
-XIIIMMotion Move(14);                          // PIN сенсора движения
+XIIIMMotion Move(16);                          // PIN сенсора движения
 #endif
 
 #if defined IRSens_Enable
@@ -527,11 +527,11 @@ if(akt == AnybodyHome || !save.autoMode) return; AnybodyHome = akt;
 switch (akt) {
 case 0: // Выключаем квартиру
 CMn("Выключаем квартиру"); AnybodyHome=0; Comm.status("AnybodyHome",0);
-for_t(1,30) {if(!strcmp(save.controlTopic[t],"")) return; for_i(0,5) {Comm.command("Relay",i,0,save.controlTopic[t]);}}
+for_t(1,30) {if(!strcmp(save.controlTopic[t],"")) return; for_i(0,sizeof(RELAY_Pin_)) {Comm.command("Relay",i,0,save.controlTopic[t]);}}
 break;
 case 1: // Восстанавливаем квартиру
 CMn("Восстанавливаем квартиру"); for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {
-for_i(0,5) {if(RELAY_State_[t][i]) Comm.command("Relay",i,1,save.LEDTopic[t]);}}}
+for_i(0,sizeof(RELAY_Pin_)) {if(RELAY_State_[t][i]) Comm.command("Relay",i,1,save.LEDTopic[t]);}}}
 AnybodyHome=1; Comm.status("AnybodyHome",1);
 break;
 }}
@@ -636,9 +636,8 @@ RELAY_Value_[0]=0; RELAY_Value_[1]=0; RELAY_Value_[2]=0; RELAY_Value_[3]=0; MQTT
 case 6: case 12: RELAY_Value_[0]=1; RELAY_Value_[1]=1; RELAY_Value_[2]=1; RELAY_Value_[3]=1; MQTTStatus("LeftInd",1); MQTTStatus("RightInd",1); break;
 case 10: RELAY_Value_[4]=!RELAY_Value_[4]; break;
 case 11: RELAY_Value_[5]=!RELAY_Value_[5]; break;
-// case 10: if(RELAY_Value_Save_[4]) Comm.command("LivingRoomRGBWindow","Relay4","0"); else Comm.command("LivingRoomRGBWindow","Relay4","1"); break;
-// case 11: if(RELAY_Value_Save_[5]) Comm.command("BedRoomRGBWindow","Relay4","0"); else Comm.command("BedRoomRGBWindow","Relay0","1"); break;
-}
+case 13: if(save.autoMode) return; save.autoMode=1; saveChange(1); MQTTStatus("AutoMode",1); break;
+case 14: if(!save.autoMode) return; save.autoMode=0; saveChange(1); MQTTStatus("AutoMode",0); break;}
 #endif
 
 #if defined MasterSceneKitchen // Сцены управления светом на кухне
@@ -651,7 +650,7 @@ case 2: if (shotPress) {RELAY_Value_[0]=2; RELAY_Value_[2]=0;
 WorkZoneLight=0; if(save.standByQuickTime) {standByTimeStart=millis(); standByQuick=1;} goto SwitchGo;} // StandByQuick
 if (!doublePress && longPress) {if(!RELAY_Value_Save_[4] && !RELAY_Value_[4]) {RELAY_Value_[4]=1; RELAY_Value_[2]=1;} else RELAY_Value_[4]=!RELAY_Value_[4];}
 if (doublePress && !longPress) RELAY_Value_[2]=!RELAY_Value_[2];
-if (doublePress && longPress) {for_i(0,5) RELAY_Value_[i]=0; if(standBy) {standBy=0;} if(standByShot) standByShot=0;
+if (doublePress && longPress) {for_i(0,sizeof(RELAY_Pin_)) RELAY_Value_[i]=0; if(standBy) {standBy=0;} if(standByShot) standByShot=0;
 if(standByQuick) {standByQuick=0;} goto SwitchGo;} break;
 case 3: if (shotPress) RELAY_Value_[0]=!RELAY_Value_[0];
 if (!doublePress && longPress) if(RELAY_Value_[2] || RELAY_Value_[4]) {RELAY_Value_[2]=0; RELAY_Value_[4]=0;} else {RELAY_Value_[2]=1; RELAY_Value_[4]=1;}
@@ -742,23 +741,23 @@ SCENE=0;}
 #if defined RelayEnable
 void SaveRelay() {returnMS(500); if(!saveRelay) return;
 #if defined MQTT_SendEnable
-if(MQTTOk) {for_i(0,5) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) MQTTStatus4("Relay",i,RELAY_Value_[i],"Relay");
+if(MQTTOk) {for_i(0,sizeof(RELAY_Pin_)) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) MQTTStatus4("Relay",i,RELAY_Value_[i],"Relay");
 if(save.CommandToTopic0 && RELAY_Value_Save_[i]!=RELAY_Value_[i]) {MQTTStatus4("Relay",i,RELAY_Value_[i],save.controlTopic[0]);}}}
 #endif
-for_i(0,5) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {RELAY_Value_Save_[i] = RELAY_Value_[i];
-CM("Сохраняем состояние Relay"); CM(i); CM(" = "); CMn(RELAY_Value_[i]); if(RELAY_Pin_[i]!=99) 
+for_i(0,sizeof(RELAY_Pin_)) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {RELAY_Value_Save_[i] = RELAY_Value_[i];
+CM("Сохраняем состояние Relay"); CM(i); CM(" (pin) "); CM(RELAY_Pin_[i]); CM(" = "); CMn(RELAY_Value_[i]); if(RELAY_Pin_[i]!=nPIN && RELAY_Pin_[i]!=RGBPIN) {
 #if defined MasterBathRoom
 if (i==3) writeRelay(RELAY_Pin_[i],!RELAY_Value_[i]); else writeRelay(RELAY_Pin_[i],RELAY_Value_[i]); // на зеркало в ванне ключ на 12В, не инвертируем как для реле
 #else
-writeRelay(RELAY_Pin_[i],RELAY_Value_[i]);
+writeRelay(RELAY_Pin_[i],RELAY_Value_[i]); CM("Пишем в "); CM(RELAY_Pin_[i]); CM(" "); CMn(RELAY_Value_[i]);
 #endif
-}} saveRelay=0;}
+}}} saveRelay=0;}
 #endif
 
 #if defined MQTT_SendEnable
 void SendStatus(uint8_t sendSt) {
 static boolean syncOk; if(!sendSt && !MQTTOk) {if(syncOk) syncOk=0; return;}
-if(!sendSt && !syncOk) {returnSec(1);} char value[7], stat[50], topic[50]; static boolean firstSend, firstSendRelay;
+if(!sendSt && !syncOk) {returnSec(1);} char value[7], stat[50], topic[50]; static boolean firstSend;
 if(!sendSt && syncOk) return;
 if(sendSt) MQTTStatus("IP",Comm.IPadress);
 if(sendSt==1 || !firstSend) {//CMn("Отправляем весь статус");
@@ -847,7 +846,7 @@ else {MQTTStatus("LED Red PIN","None"); MQTTStatus("Indikator color","1 color");
 #if defined RelayEnable // Отправить в MQTT пины реле
 strcpy(topic,"Relay PIN"); if(sizeof(RELAY_Pin_)>1) strcat(topic,"s"); strcpy(stat,"");
 for_i(0, sizeof(RELAY_Pin_)) {if (i) strcat(stat,", "); if(RELAY_Pin_[i]!=nPIN && RELAY_Pin_[i]!=RGBPIN && RELAY_Pin_[i]!=CWPIN &&
-RELAY_Pin_[i]!=RGBPIN0 && RELAY_Pin_[i]!=RGBPIN1 && RELAY_Pin_[i]!=RGBPIN2 && RELAY_Pin_[i]!=RGBPIN3 && RELAY_Pin_[i]!=RGBPIN4) {
+RELAY_Pin_[i]!=RGBPIN0 && RELAY_Pin_[i]!=RGBPIN1 && RELAY_Pin_[i]!=RGBPIN2 && RELAY_Pin_[i]!=RGBPIN3 && RELAY_Pin_[i]!=RGBPIN4 && RELAY_Pin_[i]!=RGBPIN5) {
 itoa(RELAY_Pin_[i], value,10); strcat(stat, value);}
 if(RELAY_Pin_[i]==nPIN) strcat(stat,"No"); if(RELAY_Pin_[i]==RGBPIN) {strcat(stat,"RGB Relay"); itoa(i, value,10); strcat(stat,value);}
 if(RELAY_Pin_[i]==RGBPIN0) {strcat(stat,"RGB0 Relay"); itoa(i, value,10); strcat(stat,value);}
@@ -990,7 +989,7 @@ firstSend=1;}
 if(!Comm.masterSyncOk) {CMn("Ждем синхро"); return;} syncOk=1;
 if (save.MASTER_ESP) {                    // MASTER ESP
 #if defined RelayEnable                   // Отправить в MQTT статус реле
-for_i(0,sizeof(RELAY_Pin_)) Comm.status("Relay",i,RELAY_Value_[i],"Plus");
+for_i(0,sizeof(RELAY_Pin_)) if(RELAY_Pin_[i]!=RGBPIN) Comm.status("Relay",i,RELAY_Value_[i],"Plus");
 MQTTStatus("LeftInd",0); MQTTStatus("RightInd",0);
 #endif
 MQTTStatus("StandBy",standBy);            //StandBy
@@ -1004,7 +1003,6 @@ for_i(0,sizeof(RELAY_Pin_)) if(RELAY_Pin_[i]!=nPIN) Comm.status("Relay",i,RELAY_
 #endif
 }
 #endif
-firstSendRelay=1;
 }
 
 boolean resiveCommand(const char* Command) {char tempTop[50]; strcpy(tempTop,ESPName); strcat(tempTop,"/Command/"); strcat(tempTop,Command); if (!strcmp(ReciveTopic,tempTop)) return 1; return 0;}
@@ -1051,18 +1049,18 @@ CM("<-из- MQTT: "); CM(ReciveTopic); CM(": "); CMn(ReceiveValue);
 #if defined MasterBedRoom
 static boolean LED_State;                   // 0 - сохраняем состояние LED
 static boolean bedRoomAutomode_State;       // Состояние AutoMode спальни до выкл LED
-if (save.LEDControl && Comm.LEDSyncOk && strstr(ReciveTopic,"Status/Relay1")!=NULL) { // если есть слово Status/Relay1 - управление LED подсветкой квартиры
-strcpy(compareStr,save.controlTopic[0]); strcat(compareStr,"/Status/Relay1");
+if (save.LEDControl && Comm.LEDSyncOk && strstr(ReciveTopic,"Status/Relay5")!=NULL) { // если есть слово Status/Relay1 - управление LED подсветкой квартиры
+strcpy(compareStr,save.controlTopic[0]); strcat(compareStr,"/Status/Relay5");
 if(!strcmp(ReciveTopic,compareStr)) {if(atoi(ReceiveValue)) {LED_State=0;
 CMn("Включаем LED подсветку"); CM("Восстанавливаем AutoMode = "); CMn(bedRoomAutomode_State);
 if(bedRoomAutomode_State && bedRoomAutomode_State!=save.autoMode) {save.autoMode=1; MQTTStatus("AutoMode",save.autoMode);}
-for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,5) {if(RELAY_State_[t][i]) Comm.command("Relay",i,1,save.LEDTopic[t]);}}}
+for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,sizeof(RELAY_Pin_)) {if(RELAY_State_[t][i]) Comm.command("Relay",i,1,save.LEDTopic[t]);}}}
 } else {if(!LED_State) bedRoomAutomode_State=save.autoMode; CM("Сохраняем AutoMode = "); CMn(bedRoomAutomode_State);
  LED_State=1; CMn("Выключаем LED подсветку"); if(bedRoomAutomode_State) {save.autoMode=0; MQTTStatus("AutoMode",save.autoMode);}
-for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,5) {if(RELAY_State_[t][i]) Comm.command("Relay",i,0,save.LEDTopic[t]);}}}}}}
+for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,sizeof(RELAY_Pin_)) {if(RELAY_State_[t][i]) Comm.command("Relay",i,0,save.LEDTopic[t]);}}}}}}
 
 if (!LED_State && strstr(ReciveTopic,"Status/Relay")!=NULL) { // если слово Status/Relay - запоминаем состояние (0 топик пропускаем)
-for_t(0,10) {for_i(0,5) {strcpy(compareStr,save.LEDTopic[t]); strcat(compareStr,"/Status/Relay");
+for_t(0,10) {for_i(0,sizeof(RELAY_Pin_)) {strcpy(compareStr,save.LEDTopic[t]); strcat(compareStr,"/Status/Relay");
 itoa(i, value,10); strcat(compareStr, value);
 if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); RELAY_State_[t][i]=atoi(ReceiveValue);
 CM("Сохраняем топик: "); CM(save.LEDTopic[t]); CM(" состояние реле "); CM(i); CM(" = "); CMn(RELAY_State_[t][i]);
@@ -1077,7 +1075,7 @@ if (!AnybodyHome && strstr(ReciveTopic,"Status/Motion")!=NULL && atoi(ReceiveVal
 SyncInd(1); standBy=0; AnybodyatHome(1); Comm.status("AnybodyHome","1"); CMn("Кто-то дома");}
 
 if (AnybodyHome && strstr(ReciveTopic,"Status/Relay")!=NULL) { // если слово Status/Relay - запоминаем состояние (0 топик пропускаем)
-for_t(0,10) {for_i(0,5) {strcpy(compareStr,save.LEDTopic[t]); strcat(compareStr,"/Status/Relay");
+for_t(0,10) {for_i(0,sizeof(RELAY_Pin_)) {strcpy(compareStr,save.LEDTopic[t]); strcat(compareStr,"/Status/Relay");
 itoa(i, value,10); strcat(compareStr, value);
 if(AnybodyHome && !strcmp(ReciveTopic,compareStr)) {SyncInd(1); RELAY_State_[t][i]=atoi(ReceiveValue);
 CM("Сохраняем топик: "); CM(save.LEDTopic[t]); CM(" состояние реле "); CM(i); CM(" = "); CMn(RELAY_State_[t][i]);
@@ -1108,8 +1106,8 @@ for_t(0,ctrlNumTopic) {for_i(0,sizeof(RELAY_Pin_)) {strcpy(compareStr,save.contr
 itoa(i, value,10); strcat(compareStr, value);
 if(!strcmp(ReciveTopic,compareStr)) {
 if(!save.MASTER_ESP && RELAY_Pin_[i]==nPIN) {CM("Пустой PIN "); CM(i); CMn(" пропускаем"); return;}
-RELAY_Value_[i] = atoi(ReceiveValue); if(RELAY_Value_[i]==RELAY_Value_Save_[i]) {
-CM("Реле "); CM(i); CM(" уже = "); CM(RELAY_Value_[i]); CMn(" пропускаем"); return;}
+if(atoi(ReceiveValue)==RELAY_Value_[i]) {CM("Реле "); CM(i); CM(" уже = "); CM(RELAY_Value_[i]); CMn(" пропускаем"); return;}
+RELAY_Value_[i] = atoi(ReceiveValue);
 #if defined Cold_Warm_LED_Enable
 if(RELAY_Pin_[i] == CWPIN) CWLED.switchLED=1;
 #endif
@@ -1192,27 +1190,27 @@ CM("<-из- MQTT:"); CM(ReceiveValue ? " Включаем" : " Выключае�
 if (!save.MASTER_ESP) {// прием модуль SLAVE
 if (strstr(ReciveTopic,"Status/StandBy")!=NULL) { // если есть слово Status/StandBy - установить StandBy режим
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/StandBy");
-if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); standBy = atoi(ReceiveValue); 
+if(!strcmp(ReciveTopic,compareStr)) {if(standBy == atoi(ReceiveValue)) return; SyncInd(1); standBy = atoi(ReceiveValue); 
 CM("<-из- MQTT: Синхроним StandBy режим"); CM(" = "); CMn(standBy);
 if(standBy) {standByShot=0; standByQuick=0; CMn("Отключаем StandByShot/StandByQuick");} return;}}}
 
 if(!standByQuick && !standBy) {
 if (strstr(ReciveTopic,"Status/StandByShot")!=NULL) { // если есть слово Status/StandByShot - установить StandByShot режим
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/StandByShot");
-if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); standByShot = atoi(ReceiveValue); 
+if(!strcmp(ReciveTopic,compareStr)) {if(standByShot == atoi(ReceiveValue)) return; SyncInd(1); standByShot = atoi(ReceiveValue); 
 CM("<-из- MQTT: Синхроним StandByShot режим"); CM(" = "); CMn(standByShot); return;}}}}
 
 if (strstr(ReciveTopic,"Status/StandByQuick")!=NULL) { // если есть слово Status/StandByQuick - установить StandByQuick режим
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/StandByQuick");
-if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); standByQuick = atoi(ReceiveValue);
+if(!strcmp(ReciveTopic,compareStr)) {if(standByQuick == atoi(ReceiveValue)) return; SyncInd(1); standByQuick = atoi(ReceiveValue);
 CM("<-из- MQTT: Синхроним StandByQuick режим"); CM(" = "); CMn(standByQuick);
 if(standByQuick) {standBy=0; standByShot=0; CMn("Отключаем StandBy/StandByShot");} return;}}}
 
 if (strstr(ReciveTopic,"Status/AutoMode")!=NULL) { // если есть слово Status/AutoMode - установить AutoMode режим
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/AutoMode");
-if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); if(save.autoMode != atoi(ReceiveValue)) {atoi(ReceiveValue) ? save.autoMode=1 : save.autoMode=0;
+if(!strcmp(ReciveTopic,compareStr)) {if(save.autoMode == atoi(ReceiveValue)) return; SyncInd(1); atoi(ReceiveValue) ? save.autoMode=1 : save.autoMode=0;
 if(!save.autoMode) {standBy=0; standByShot=0; CMn("Отключаем StandBy режимы"); Motion=0; MotionSensor=0; MQTTStatus("Motion",0); MQTTStatus("MotionSensor",0);}
-CM("<-из- MQTT: Синхроним Авто режим"); CM(" = "); CMn(save.autoMode); saveChange(1); MQTTStatus("AutoMode",save.autoMode);} return;}}}
+CM("<-из- MQTT: Синхроним Авто режим"); CM(" = "); CMn(save.autoMode); saveChange(1); MQTTStatus("AutoMode",save.autoMode); return;}}}
 
 if (!Comm.masterSyncOk) {if (strstr(ReciveTopic,"Status/SyncStatus")!=NULL) { // если есть слово Status/SyncStatus - синхронизация с MASTER подтверждена
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/SyncStatus");
@@ -1280,11 +1278,8 @@ if (strstr(ReciveTopic,"Status/Status")!=NULL) { // если есть слово
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/Status");
 if(!strcmp(ReciveTopic,compareStr)) {SyncInd(1); CMn("<-из- MQTT: Запрос статуса"); SendStatus(2); return;}}}
 
-if (resiveCommand("AutoMode")) {SyncInd(1); boolean resVal=atoi(ReceiveValue);
-#if defined EEPROM_Enable
-save.autoMode = resVal;
-#endif
-CM("<-из- MQTT: ПК Авто режим: "); CMn(resVal); Comm.status("AutoMode",resVal); if(!resVal) standBy=0; standByShot=0; standByQuick=0; saveChange(1); return;}
+if (resiveCommand("AutoMode")) {if(save.autoMode == atoi(ReceiveValue)) return; SyncInd(1); save.autoMode = atoi(ReceiveValue);
+CM("<-из- MQTT: ПК Авто режим: "); CMn(save.autoMode); Comm.status("AutoMode",save.autoMode); if(!save.autoMode) standBy=0; standByShot=0; standByQuick=0; saveChange(1); return;}
 
 if (resiveCommand("StandByTime")) {SyncInd(1); save.standByTime=atoi(ReceiveValue);
 CM("<-из- MQTT: ПК Время StandBy режима: "); CM(ReceiveValue); CMn(" сек.");
@@ -1540,7 +1535,7 @@ boolean check=0;
 if (length) {for_i(0,10) if(strcmp("",save.LEDTopic[i])) check=1; if(!check) Comm.status("LED topics","Control LED topics");
 strcpy(save.LEDTopic[t],ReceiveValue); strcpy(value,ReceiveValue); Comm.SyncLEDTopic[t]=0; Comm.LEDSyncOk=0; strcpy(topic,save.LEDTopic[t]); strcat(topic," - not syncronized");
 Comm.status("LED topic",t,topic,"plus"); if (strcmp(save.LEDTopic[t],"")) {CM("Подписываемся на: "); CMn(save.LEDTopic[t]); {
-for_i(0,5) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
+for_i(0,sizeof(RELAY_Pin_)) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
 char RelayNUM[2]; itoa(i,RelayNUM,10); strcat(topic,RelayNUM); mqttClient.subscribe(topic,1);}
 strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/IP"); mqttClient.subscribe(topic,1);}}
 } else {Comm.status("LED topic",t,"Not assigned","Plus");

@@ -118,7 +118,7 @@ myLux.setContinuousMode();
 if(myLux.getError()) {CMn("Ошибка инициализации сенсора MAX44009"); MQTTStatus("Sensor initialization","MAX44009 error");} else {CMn("Инициализация сенсора MAX44009 произведена"); errorInitSens=0;}
 #endif
 
-return5sec;
+returnSec(5);
 
 #if defined S8_CO2_Enable
 s8Serial.begin(9600);
@@ -205,7 +205,7 @@ if (LuxSave == LuxSensor) newCount=0;}
 #endif
 
 #if defined BME280_Enable
-void ReadTemp() {if(errorInitSens) return; return1sec; char value[10],tempVal[10];
+void ReadTemp() {if(errorInitSens) return; returnSec(1); char value[10],tempVal[10];
 #if defined S8_CO2_Enable
 if (CO2MeasureProcess) return;
 #endif
