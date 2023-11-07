@@ -24,7 +24,6 @@ Ticker mqttReconnectTimer;
 class XIIIMCommunicate { // ----------------------------------------------- CLASS -------------------------------------------------------------------------------------
 public:
 char IPadress[40];
-boolean MASTER_ESP = 0;
 boolean masterSyncOk=0;                         // модуль синхронизирован по всем контролируемым топикам
 #if defined GlobalHouseSwitch || defined MasterBedRoom
 boolean LEDSyncOk=0;                            // состояние всех LED топиков синхронизировано
@@ -57,10 +56,10 @@ void status(const char* param, double &value, int32_t current);                 
 
 void command(const char* topic, const char* command, const char* value);                                      // "Topic","Command","Value"
 void command(const char* topic, const char* command, int value);                                              // "Topic","Command","Value"
-void command(const char* topicNum, int32_t value);                                                            // "Command","Value" to Topic0
+void command(const char* topic0, int32_t value);                                                              // "Command","Value" to Topic0
 void command(const char* topic, char command, int value, const char* outControlTopic);                        // "Command","Value" to TopicName
 
-#if defined RelayEnable
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable)
 void statusRelay();
 #endif
 #endif
@@ -102,7 +101,7 @@ if (strcmp(save.controlTopic[0],"")) {strcpy(topic,save.controlTopic[0]); strcat
 for_i(0,10) {if (strcmp(save.controlTopic[i],"")) {strcpy(topic,save.controlTopic[i]); strcat(topic,"/Status/#"); mqttClient.subscribe(topic,1); CM("Подписываемся на: "); CMn(topic);}}
 #endif
 #if defined GlobalHouseSwitch || defined MasterBedRoom
-for_t(0,10) {if (strcmp(save.LEDTopic[t],"")) {CM("Подписываемся на: "); CMn(save.LEDTopic[t]); {for_i(0,5) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
+for_t(0,10) {if (strcmp(save.LEDTopic[t],"")) {CM("Подписываемся на: "); CMn(save.LEDTopic[t]); {for_i(0,sizeof(RELAY_Pin_)) {strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/Relay"); 
 char RelayNUM[2]; itoa(i,RelayNUM,10); strcat(topic,RelayNUM); mqttClient.subscribe(topic,1); CMn(topic);}
 strcpy(topic,save.LEDTopic[t]); strcat(topic,"/Status/IP"); mqttClient.subscribe(topic,1); CMn(topic);}}}
 #endif
@@ -200,7 +199,7 @@ void XIIIMCommunicate::status(const char* param, double &value, int32_t current)
 
 void XIIIMCommunicate::command(const char* topic, const char* command, const char* value) {char topicSend[50]; strcpy(topicSend,topic); strcat(topicSend,"/Command/"); strcat(topicSend,command); commMQTT(topicSend,value);}
 void XIIIMCommunicate::command(const char* topic, const char* command, int value) {char topicSend[50],valueSend[7]; strcpy(topicSend,topic); strcat(topicSend,"/Command/"); strcat(topicSend,command); itoa(value,valueSend,10); commMQTT(topicSend,valueSend);}
-void XIIIMCommunicate::command(const char* topicNum, int32_t value) {char topicSend[50],valueSend[7]; strcpy(topicSend,save.controlTopic[0]); strcat(topicSend,"/Command/"); strcat(topicSend,topicNum); itoa(value,valueSend,10); commMQTT(topicSend,valueSend);}
+void XIIIMCommunicate::command(const char* topic0, int32_t value) {char topicSend[50],valueSend[7]; strcpy(topicSend,save.controlTopic[0]); strcat(topicSend,"/Command/"); strcat(topicSend,topic0); itoa(value,valueSend,10); commMQTT(topicSend,valueSend);}
 void XIIIMCommunicate::command(const char* topic, char command, int value, const char* outControlTopic) {char topicSend[50],valueSend[7]; strcpy(topicSend,outControlTopic); strcat(topicSend,"/Command/"); strcat(topicSend,topic); itoa(command,valueSend,10); strcat(topicSend,valueSend); itoa(value,valueSend,10); commMQTT(topicSend,valueSend);}
 
 void XIIIMCommunicate::getMQTT() {ESP_MasterSlave();
@@ -258,8 +257,8 @@ const uint8_t numsOfTopic=30;
 #endif
 if((!MQTTOk && !saveMQTT) || (!WiFiOk && !saveWiFiOk)) {for_t(0,numsOfTopic) SyncTopic[t]=0; firstCheckTopics=0; masterSyncOk=0; slaveState=0; 
 CMn("Сброс синхронизации топиков"); saveMQTT=!MQTTOk; saveWiFiOk=!WiFiOk; return;} saveMQTT=!MQTTOk; saveWiFiOk=!WiFiOk;
-if(!slaveState && !MASTER_ESP && masterSyncOk) {// Slave отсылает статус реле после синхронизации
-#if defined RelayEnable // Отправить в MQTT статус реле
+if(!slaveState && !save.MASTER_ESP && masterSyncOk) {// Slave отсылает статус реле после синхронизации
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) // Отправить в MQTT статус реле
 CMn("Засинхронили, отправляем состояние реле");
 for_i(0, sizeof(RELAY_Pin_)) if(RELAY_Pin_[i]!=nPIN) status("Relay",i,RELAY_Value_[i],"Plus");
 #endif
@@ -267,7 +266,7 @@ slaveState=1; return;} if(masterSyncOk) return;
 boolean check=0; static uint32_t stime; uint8_t topicCounter=0;
 
 for_t(0,numsOfTopic) if(strcmp("",save.controlTopic[t])) check=1; if(!check) {masterSyncOk=1; // Нет контролируемых топиков
-if(MASTER_ESP) {status("ESP Module MASTER","Synchronization complete");} else {status("ESP Module SLAVE","Synchronization complete");} return;}
+if(save.MASTER_ESP) {status("ESP Module MASTER","Synchronization complete");} else {status("ESP Module SLAVE","Synchronization complete");} return;}
 
 char SndTopic[70]; static uint8_t topicNum, lagTime, statrSync; if(lagTime==1 && millis()-stime<300) return;
 if(lagTime==2 && millis()-stime<5000) return; stime=millis(); if(!statrSync) statrSync=1;
@@ -282,7 +281,7 @@ else if(!strcmp("",save.controlTopic[t]) && t<numsOfTopic+1) {
 //CM("Топик "); CM(t); CM(" "); CM(save.controlTopic[t]); CMn(" пустой, пропускаем");
 SyncTopic[t]=2; topicCounter++;}}
 
-if(topicCounter>=numsOfTopic) {if(MASTER_ESP) {status("ESP Module MASTER","Synchronization complete");}
+if(topicCounter>=numsOfTopic) {if(save.MASTER_ESP) {status("ESP Module MASTER","Synchronization complete");}
 else {status("ESP Module SLAVE","Synchronization complete");} masterSyncOk=1; CMn("Все топики синхронизированы"); return;}
 
 while(SyncTopic[topicNum]) topicNum++;
@@ -297,7 +296,7 @@ CMn(save.controlTopic[topicNum]); command(save.controlTopic[topicNum],"Status",1
 CM("Повтор сихро в топик: "); CMn(save.controlTopic[topicNum]); lagTime=2; masterSyncOk=0;
 command(save.controlTopic[topicNum],"Status",1); topicNum++;}
 
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 void XIIIMCommunicate::statusRelay() {for_i(0,sizeof(RELAY_Pin_)) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) status("Relay",i,RELAY_Value_[i],"Relay");
 if(save.CommandToTopic0 && RELAY_Value_Save_[i]!=RELAY_Value_[i]) {command("Relay",i,RELAY_Value_[i],save.controlTopic[0]);}}}
 #endif

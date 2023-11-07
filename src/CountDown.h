@@ -41,7 +41,7 @@ if (!RELAY_Value_Save_[1] && RELAY_Value_[1]) {mRGB.powerON(0); CMn("StandBy в�
 else if (RELAY_Value_Save_[1] && !RELAY_Value_[1]) {mRGB.powerOFF(0); CMn("StandBy выкл RGB Power0");}
 if (!RELAY_Value_Save_[2] && RELAY_Value_[2]) {mRGB.powerON(1); CMn("StandBy вкл RGB Power1");}
 else if (RELAY_Value_Save_[2] && !RELAY_Value_[2]) {mRGB.powerOFF(1); CMn("StandBy выкл RGB Power1");}
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 for_i(0,sizeof(RELAY_Pin_)) if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {CM("StandByOff реле "); CM(i); CM(" в "); CMn(RELAY_Value_[i]);} saveRelay=1;
 #endif
 #endif
@@ -49,7 +49,15 @@ for_i(0,sizeof(RELAY_Pin_)) if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {CM("St
 
 void XIIIMCount::StandByShotCountDown() {returnSec(1); static boolean standBySave;
 if (!save.MASTER_ESP) for_t(0,10) if(strcmp("",save.controlTopic[t])) return;
-if(standBySave!=standByShot) {standBySave=standByShot; MQTTStatus("StandByShot",standByShot); if(standBySave) {brightMode=1; standByTimeStart=millis();} else if (!standByQuick) {brightMode=0;}}
+if(standBySave!=standByShot) {standBySave=standByShot; MQTTStatus("StandByShot",standByShot); if(standBySave) {brightMode=1;
+#if defined MasterBedRoom && defined MQTT_SendEnable
+Comm.command(save.LEDTopic[0],"BrightMode","1"); // включение яркой LED в спальне на движение
+#endif
+standByTimeStart=millis();} else if (!standByQuick) {brightMode=0;
+#if defined MasterBedRoom && defined MQTT_SendEnable
+Comm.command(save.LEDTopic[0],"BrightMode","0");
+#endif
+}}
 
 if(!save.autoMode || !standByShot || standByQuick || standBy) return; static uint32_t sec; static uint8_t saveVal, roundVal; static boolean min;
 if (millis() - standByTimeStart < save.standByShotTime*1000) {
@@ -57,7 +65,8 @@ sec = (save.standByShotTime*1000 - (millis() - standByTimeStart));
 if(sec>=60000) {min=1; (sec/1000)%60>29 ? roundVal=sec/60000+1 : roundVal=sec/60000;} else {roundVal=sec/1000; min=0;} if(saveVal==roundVal) return;
 CM("Выкл. StandByShot через: "); CM(roundVal); if(min) {CMn(" мин.");} else {CMn(" сек.");}
 if(saveVal!=roundVal || !min) {if(min) {MQTTStatus3("StandByShotOffTime",roundVal,"min");} else {MQTTStatus3("StandByShotOffTime",roundVal,"sec");}
-}} else {standByShot=0; CMn("Выкл. standByShot по таймеру.");} saveVal=roundVal;}
+}} else {standByShot=0; 
+CMn("Выкл. standByShot по таймеру.");} saveVal=roundVal;}
 
 void XIIIMCount::StandByQuickCountDown() {returnSec(1); static boolean standBySave;
 #if defined EEPROM_Enable
@@ -86,7 +95,7 @@ if (!holdVentHUM && humidity>=save.thresholdHUM) {CMn("Вкл. превышен�
 else if (holdVentHUM && humidity<(save.thresholdHUM-save.hysteresisHUM)) {CMn("Выкл. превышение влажности"); holdVentHUM=0;}}
 #endif
 
-#if defined RelayEnable && defined CommandToRelay
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && defined CommandToRelay
 if(!RELAY_Value_[4] && (holdVentTemp || holdVentHUM) && save.autoMode) {RELAY_Value_[4] = 1; saveRelay=1; 
 MQTTStatus4("Relay",4,RELAY_Value_[4],"Relay"); CMn("Включили вытяжку");}
 if(RELAY_Value_[4] && !ventStandBy && !holdVentTemp && !holdVentHUM && !standBy && save.autoMode) {RELAY_Value_[4] = 0; saveRelay=1; 
@@ -117,7 +126,7 @@ if(save.autoMode) {if(RELAY_Value_[0] || RELAY_Value_[1] || RELAY_Value_[3]) hol
 if(!standBy && !holdVentTime && !ventStandBy && RELAY_Value_[4] && !holdVentRelay) {ventStandBy=1; startVentAutoTime=millis(); 
 MQTTStatus("VentStandBy",ventStandBy); CMn("Вкл. таймер вытяжки");}
 
-#if defined RelayEnable && defined CommandToRelay
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && defined CommandToRelay
 if(RELAY_Value_[4] && !ventStandBy && !holdVentRelay && !standBy && save.autoMode) {RELAY_Value_[4] = 0; saveRelay=1; 
 CMn("Выключили вытяжку"); holdVentTime=0;}
 #endif
@@ -155,7 +164,7 @@ sec = (save.MotionWashTime*1000 - (millis() - motionWashStart));
 CM("Выкл. Раб зону через: "); if (sec>=60000) {CM(roundVal); CMn(" мин.");} else {CM(sec/1000); CMn(" сек.");}
 if(saveVal!=roundVal || sec<60000) {sec>=60000 ? MQTTStatus3("Wash Off Light",roundVal,"min") : MQTTStatus3("Wash Off Light",sec/1000,"sec");
 if (sec>=60000) saveVal=roundVal; else saveVal=0;}} else {CMn("Выкл. Раб зону по таймеру.");
-#if defined RelayEnable && defined CommandToRelay
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && defined CommandToRelay
 RELAY_Value_[2] = 0; saveRelay=1; MQTTStatus4("Relay",2,RELAY_Value_[2],"Relay");
 #endif
 }}

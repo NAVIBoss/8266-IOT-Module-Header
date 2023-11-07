@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 #if defined ledIndikator_Enable
-#define syncInd(x) Led.Sync_I0=x
+#define syncInd(x) Led.Sync_I0=x; Led.Sync_I1=x
 #else
 #define syncInd(x)
 #endif
@@ -54,14 +54,14 @@ if (digitalRead(MotionSens_PIN)) {syncInd(1); MotionSensor = 1; CMn("Обнар�
 #if defined EEPROM_Enable
 for_t(0,10) {if(!ctrlTopic && strcmp("",save.controlTopic[t])) ctrlTopic=1;}
 #endif
-if(!save.MASTER_ESP) {MQTTStatus("MotionSensor",MotionSensor); if (save.MASTER_ESP) {MQTTStatus("Motion",1); Motion=1;}
-if(save.autoMode && !standBy && !standByShot && !standByQuick && !ctrlTopic) {standByShot=1; CMn("Включаем standByShot");}}
+if (save.MASTER_ESP) {MQTTStatus("Motion",1); Motion=1;} MQTTStatus("MotionSensor",MotionSensor);
+if(save.MASTER_ESP || (save.autoMode && !standBy && !standByShot && !standByQuick && !ctrlTopic)) {standByShot=1; CMn("Включаем standByShot");}}
 standByTimeStart=millis();
 #if defined MasterSceneKitchen
 if(!WorkZoneLight && !RELAY_Value_[2] && save.autoMode && save.MotionWashEnable && !standBy && !standByQuick) {
 WorkZoneLight=1; RELAY_Value_[2]=1; saveRelay=1; CMn("Вкл подсветку раб зоны");}
 #endif
-}}
+}
 
 void XIIIMMotion::MotionSensCountDown() {if(!MotionSensor) return; returnSec(1); uint8_t MotionOnMemory = 3;
 static uint32_t sec; static uint8_t saveVal, roundVal; static boolean min; boolean ctrlTopic=0;

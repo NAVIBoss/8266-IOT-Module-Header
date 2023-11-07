@@ -1,36 +1,36 @@
-#define ESPName "BedroomCO2"                  // топик MQTT для отправки сообщений (Command, Status) max 20 символов
+#define ESPName "LivingRoomLamp"                  // топик MQTT для отправки сообщений (Command, Status) max 20 символов
 #define FirmwareVersion "6.0"                   // версия прошивки
 
-#define clearMemory                           // записать в память начальные параметры
+//#define clearMemory                           // записать в память начальные параметры
 //#define DebagEnable                           // вывод в порт
 #define EEPROM_Enable                         // сохранение данных в Arduino
 #define ESP_EEPROM_Enable                     // сохранение данных в EPS8266
 #define MQTT_SendEnable                       // отправка данных в MQTT
 #define OTAEnable                             // прошивка по воздуху
 #define ledIndikator_Enable                   // индикация режимов работы
-//#define led3ColorIndikator_Enable             // индикация режимов работы для 2 RGB светодиодов в выключателе
+#define led3ColorIndikator_Enable             // индикация режимов работы для 2 RGB светодиодов в выключателе
 //#define MonoIndikator                         // индикация только синим
-//#define InverseOutIndikator                   // инвертировать выход индикаторов (для внутреннего и 3 цвета)
+#define InverseOutIndikator                   // инвертировать выход индикаторов (для внутреннего и 3 цвета)
 //#define BH1750_Enable                         // датчик освещенности
 //#define MAX44009_Enabled                      // датчик освещенности
 //#define VL6180X_Enable                        // определение взмаха рука по датчику VL6180X
-#define BME280_Enable                         // датчик температуры, влажности, давления
+//#define BME280_Enable                         // датчик температуры, влажности, давления
 //#define AM2301A_Enabled                       // датчик температуры, влажности
 //#define AM2320_Enabled                        // датчик температуры, влажности
-#define S8_CO2_Enable                         // датчик углекислого газа
+//#define S8_CO2_Enable                         // датчик углекислого газа
 //#define HX711_Enable                          // тензодатчик
 //#define Vibro_Enable                          // датчик вибрации (сенсор PIN 2, Реле PIN 3)
 //#define PZEM004T_Enable                       // датчик нарпяжения и тока PZEM004T
 //#define ButtonEnable                          // управление c кнопок
 //#define BuzerEnable                           // озвучивание нажатия кнопок в выключателе
-#define MotionSens_Enable                     // датчик движения
+//#define MotionSens_Enable                     // датчик движения
 //#define PresenceSens_Enable                   // датчик присутствия - учитывается только после оработки датчика движения
-//#define MasterSceneLivingRoom                 // сцены управления в зале | спальне
+#define MasterSceneLivingRoom                 // сцены управления в зале | спальне
 //#define MasterSceneKitchen                    // сцены управления на кухне
 //#define MasterSceneCorridor
 //#define GlobalHouseSwitch                     // сцены управления всей квартирой в коридоре (кнопка на входе)
 //#define BadRoomRGBRule_Enable                 // для спальни - откл светодиоды, если вкл яркий свет и наоборот
-#define MasterBedRoom                         // сцены управления в спальне (LED подсветка по всей квартире) - модуль CO2
+//#define MasterBedRoom                         // сцены управления в спальне (LED подсветка по всей квартире) - модуль CO2
 //#define MasterBathRoom                        // сцены управления ванной
 #define RelayEnable                           // управление реле
 //#define CommandToRelay                        // выполнять команды реле напрямую
@@ -186,7 +186,7 @@ int16_t tempC, humidity, pressure;
 #endif
 
 #if defined GlobalHouseSwitch || defined MasterBedRoom
-boolean RELAY_State_[10][5];                    // Состояние LED подсветки для восстановления
+boolean RELAY_State_[10][6];                    // Состояние LED подсветки для восстановления
 boolean SyncLEDTopic[]{0,0,0,0,0,0,0,0,0,0};    // Состояние LED топиков получено
 #endif
 
@@ -211,13 +211,13 @@ void SendStatus(uint8_t sendSt);
 int32_t motionWashStart= -3600*1000;            // начало отсчета времени включения света около мойки
 #endif
 
-#if defined ButtonEnable || defined RelayEnable || defined IRSens_Enable
+#if defined ButtonEnable || defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable || defined IRSens_Enable
 uint8_t RELAY_Value_[] = {0,0,0,0,0,0};         // обрабатываемые состояния реле
 uint8_t RELAY_Value_Save_[] = {0,0,0,0,0,0};    // сохраненные состояния реле
 #endif
 
-#if defined RelayEnable
-uint8_t RELAY_Pin_[] = {nPIN,nPIN,nPIN,nPIN,nPIN,RGBPIN};    					// управление реле - для ESP8266-01 - только 0,3 работают с SSD-DC | nPIN - вирт пин | RGBPIN - RGB
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
+uint8_t RELAY_Pin_[] = {nPIN,nPIN,4,14,RGBPIN,RGBPIN};    					// управление реле - для ESP8266-01 - только 0,3 работают с SSD-DC | nPIN - вирт пин | RGBPIN - RGB
 boolean saveRelay = 0;                          // сохранение состояний реле только после отсылки статуса
 #endif
 
@@ -351,9 +351,8 @@ XIIIMLED Led(2);                                // BUILTIN_LED
 #else
 #if defined led3ColorIndikator_Enable
 //XIIIMLED Led(5,3,1,12,14,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
-XIIIMLED Led(13,12,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
-#else
-XIIIMLED Led(13,15);                            // ([Синий PIN][, красный PIN]) без параметров - BUILTIN_LED
+//XIIIMLED Led(15,0,13);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])
+XIIIMLED Led(13,12,16);									// (красный 1 PIN, зеленый 1 PIN, синий 1 PIN [, красный 2 PIN] [, зеленый 2 PIN] [, синий 2 PIN])#else
 #endif
 #endif
 #define SyncInd(x) Led.Sync_I0=x; Led.Sync_I1=x
@@ -384,7 +383,7 @@ uint16_t standByQuickTime = 5;                 // время StandQuickBy реж
 #if defined MotionSens_Enable 
 boolean MotionDetectEnable = 1;                 // реагировать на движение общее
 #else 
-boolean MotionDetectEnable = 0;                 // реагировать на движение общее
+boolean MotionDetectEnable = 1;                 // реагировать на движение общее
 #endif 
 uint8_t MotionIgnore = 0;                       // сколько не реагировать после перехода сенсора в режим Off (сек) | отключения квартиры (Коридор)
 uint8_t MotionOnMemory = 3;                     // сколько считать сенсор сработавшим после отключения (сек)
@@ -582,7 +581,7 @@ if(SCENE==15) Buz.en();
 if(SCENE==16) Buz.dis();
 #endif
 
-#if defined RelayEnable && defined ButtonEnable && defined CommandToRelay && not defined MasterSceneKitchen && not defined kitchenVent_Enable && not defined GlobalHouseSwitch && not defined MasterSceneCorridor && not defined MasterBathRoom// Управление реле от кнопок
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && defined ButtonEnable && defined CommandToRelay && not defined MasterSceneKitchen && not defined kitchenVent_Enable && not defined GlobalHouseSwitch && not defined MasterSceneCorridor && not defined MasterBathRoom// Управление реле от кнопок
 boolean flag = 0;
 if (SCENE > sizeof(RELAY_Pin_)) for_i(0, sizeof(RELAY_Pin_)) RELAY_Value_[i] = 0;
 else if (doublePress) { // double
@@ -733,12 +732,12 @@ else if (RELAY_Value_Save_[1] && !RELAY_Value_[1]) mRGB.powerOFF(0);
 if (!RELAY_Value_Save_[2] && RELAY_Value_[2]) mRGB.powerON(1);
 else if (RELAY_Value_Save_[2] && !RELAY_Value_[2]) mRGB.powerOFF(1);
 #endif
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 for_i(0,sizeof(RELAY_Pin_)) if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {CM("Сцена реле "); CM(i); CM(" в "); CMn(RELAY_Value_[i]);} saveRelay=1;
 #endif
 SCENE=0;}
 
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 void SaveRelay() {returnMS(500); if(!saveRelay) return;
 #if defined MQTT_SendEnable
 if(MQTTOk) {for_i(0,sizeof(RELAY_Pin_)) {if (RELAY_Value_Save_[i] != RELAY_Value_[i]) MQTTStatus4("Relay",i,RELAY_Value_[i],"Relay");
@@ -785,8 +784,8 @@ for_t(0,numsOfTopic) if(strcmp(save.controlTopic[t],"")) {topicPresent=1; strcpy
 if(Comm.SyncTopic[t]==1) strcat(topic," - syncronized"); else strcat(topic," - not syncronized"); MQTTStatus4("Controlled topic",t,topic,"plus");}
 if(!topicPresent) {MQTTStatus("Controlled topic","No monitored topics");} // Нет контролируемых топиков
 else {MQTTStatus("Controlled topic","Control topics"); if(Comm.masterSyncOk)
-{if (Comm.MASTER_ESP) MQTTStatus("ESP Module MASTER","Synchronization complete"); else MQTTStatus("ESP Module SLAVE","Synchronization complete");} else
-{if (Comm.MASTER_ESP) MQTTStatus("ESP Module MASTER","Wait Synchronization"); else MQTTStatus("ESP Module SLAVE","Wait Synchronization");}}
+{if (save.MASTER_ESP) MQTTStatus("ESP Module MASTER","Synchronization complete"); else MQTTStatus("ESP Module SLAVE","Synchronization complete");} else
+{if (save.MASTER_ESP) MQTTStatus("ESP Module MASTER","Wait Synchronization"); else MQTTStatus("ESP Module SLAVE","Wait Synchronization");}}
 
 #if defined GlobalHouseSwitch || defined MasterBedRoom
 topicPresent=0;
@@ -843,7 +842,7 @@ else {MQTTStatus("LED Red PIN","None"); MQTTStatus("Indikator color","1 color");
 #endif
 #endif
 
-#if defined RelayEnable // Отправить в MQTT пины реле
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable // Отправить в MQTT пины реле
 strcpy(topic,"Relay PIN"); if(sizeof(RELAY_Pin_)>1) strcat(topic,"s"); strcpy(stat,"");
 for_i(0, sizeof(RELAY_Pin_)) {if (i) strcat(stat,", "); if(RELAY_Pin_[i]!=nPIN && RELAY_Pin_[i]!=RGBPIN && RELAY_Pin_[i]!=CWPIN &&
 RELAY_Pin_[i]!=RGBPIN0 && RELAY_Pin_[i]!=RGBPIN1 && RELAY_Pin_[i]!=RGBPIN2 && RELAY_Pin_[i]!=RGBPIN3 && RELAY_Pin_[i]!=RGBPIN4 && RELAY_Pin_[i]!=RGBPIN5) {
@@ -988,7 +987,7 @@ firstSend=1;}
 #if defined EEPROM_Enable && defined ESP_EEPROM_Enable
 if(!Comm.masterSyncOk) {CMn("Ждем синхро"); return;} syncOk=1;
 if (save.MASTER_ESP) {                    // MASTER ESP
-#if defined RelayEnable                   // Отправить в MQTT статус реле
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable                   // Отправить в MQTT статус реле
 for_i(0,sizeof(RELAY_Pin_)) if(RELAY_Pin_[i]!=RGBPIN) Comm.status("Relay",i,RELAY_Value_[i],"Plus");
 MQTTStatus("LeftInd",0); MQTTStatus("RightInd",0);
 #endif
@@ -998,7 +997,7 @@ MQTTStatus("StandByQuick",standByQuick);  //StandByQuick
 MQTTStatus("Motion",Motion);              //Motion
 MQTTStatus("BrightMode",brightMode);      //BrightMode
 syncOk=1;} else if (sendSt) {             // SLAVE ESP
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 for_i(0,sizeof(RELAY_Pin_)) if(RELAY_Pin_[i]!=nPIN) Comm.status("Relay",i,RELAY_Value_[i],"Plus"); // Slave статус реле после синхронзации при запросе
 #endif
 }
@@ -1049,14 +1048,14 @@ CM("<-из- MQTT: "); CM(ReciveTopic); CM(": "); CMn(ReceiveValue);
 #if defined MasterBedRoom
 static boolean LED_State;                   // 0 - сохраняем состояние LED
 static boolean bedRoomAutomode_State;       // Состояние AutoMode спальни до выкл LED
-if (save.LEDControl && Comm.LEDSyncOk && strstr(ReciveTopic,"Status/Relay5")!=NULL) { // если есть слово Status/Relay1 - управление LED подсветкой квартиры
-strcpy(compareStr,save.controlTopic[0]); strcat(compareStr,"/Status/Relay5");
+if (save.LEDControl && Comm.LEDSyncOk && strstr(ReciveTopic,"Status/Relay1")!=NULL) { // если есть слово Status/Relay1 - управление LED подсветкой квартиры
+strcpy(compareStr,save.controlTopic[0]); strcat(compareStr,"/Status/Relay1");
 if(!strcmp(ReciveTopic,compareStr)) {if(atoi(ReceiveValue)) {LED_State=0;
 CMn("Включаем LED подсветку"); CM("Восстанавливаем AutoMode = "); CMn(bedRoomAutomode_State);
 if(bedRoomAutomode_State && bedRoomAutomode_State!=save.autoMode) {save.autoMode=1; MQTTStatus("AutoMode",save.autoMode);}
 for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,sizeof(RELAY_Pin_)) {if(RELAY_State_[t][i]) Comm.command("Relay",i,1,save.LEDTopic[t]);}}}
 } else {if(!LED_State) bedRoomAutomode_State=save.autoMode; CM("Сохраняем AutoMode = "); CMn(bedRoomAutomode_State);
- LED_State=1; CMn("Выключаем LED подсветку"); if(bedRoomAutomode_State) {save.autoMode=0; MQTTStatus("AutoMode",save.autoMode);}
+LED_State=1; CMn("Выключаем LED подсветку"); if(bedRoomAutomode_State) {save.autoMode=0; MQTTStatus("AutoMode",save.autoMode);}
 for_t(0,10) {if(strcmp(save.LEDTopic[t],"")) {for_i(0,sizeof(RELAY_Pin_)) {if(RELAY_State_[t][i]) Comm.command("Relay",i,0,save.LEDTopic[t]);}}}}}}
 
 if (!LED_State && strstr(ReciveTopic,"Status/Relay")!=NULL) { // если слово Status/Relay - запоминаем состояние (0 топик пропускаем)
@@ -1100,7 +1099,7 @@ Comm.SyncLEDTopic[t]=1; strcpy(topic,save.LEDTopic[t]); strcat(topic," - syncron
 #endif
 }
 
-#if defined RelayEnable && not defined GlobalHouseSwitch // контроль топика Status
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && not defined GlobalHouseSwitch // контроль топика Status
 if (strstr(ReciveTopic,"Status/Relay")!=NULL) { // если есть слово Status/Relay - синхронизация
 for_t(0,ctrlNumTopic) {for_i(0,sizeof(RELAY_Pin_)) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/Relay");
 itoa(i, value,10); strcat(compareStr, value);
@@ -1127,7 +1126,7 @@ for_i(0,sizeof(RELAY_Pin_)) if (RELAY_Value_Save_[i] != RELAY_Value_[i]) {SyncIn
 CM("Синхроним реле "); CM(i); CM(" = "); CMn(RELAY_Value_[i]);} saveRelay=1; return;}}}}
 #endif
 
-#if defined RelayEnable
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 if (strstr(ReciveTopic,"Command/Relay")!=NULL) { // если есть команда для Relay(x), то переключаем, отсылаем статус реле
 for_i(0,sizeof(RELAY_Pin_)) {strcpy(compareStr,"Relay"); itoa(i, value,10); strcat(compareStr, value);
 if(resiveCommand(compareStr)) {if(!save.MASTER_ESP && RELAY_Pin_[i]==nPIN) {CM("Пустой PIN "); CM(i); CMn(" пропускаем"); return;}
@@ -1163,15 +1162,12 @@ if (strstr(ReciveTopic,"Status/SCENE")!=NULL) { // если есть слово 
 for_t(0,ctrlNumTopic) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/SCENE");
 if(!strcmp(ReciveTopic,compareStr)) {char *strtokIndx;
 strtokIndx = strtok(ReceiveValue," "); SCENE=atoi(strtokIndx);
-#if defined MasterSceneLivingRoom
-if (strstr(ReciveTopic,"LivingRoomButton1")!=NULL) SCENE+=10;
-#endif
 while (strtokIndx != NULL) {strtokIndx = strtok(NULL," "); SyncInd(1); CM("Синхроним SCENE: "); CM(SCENE); CMn(); SwitchScene(); return;}}}}
 
 if (strstr(ReciveTopic,"Status/MotionSensor")!=NULL) { // если есть слово Status/MotionSensor - где-то есть движ
 for_t(0,29) {strcpy(compareStr,save.controlTopic[t]); strcat(compareStr,"/Status/MotionSensor");
 if(!strcmp(ReciveTopic,compareStr)) {if(atoi(ReceiveValue)) {SyncInd(1); CMn("<-из- MQTT: Общее движение: 1");}
-if (atoi(ReceiveValue) && save.autoMode) {Motion=1; Comm.status("Motion","1"); standByTimeStart=millis(); motionStart=millis();
+if (atoi(ReceiveValue) && save.autoMode) {Motion=1; MQTTStatus("Motion","1"); standByTimeStart=millis(); motionStart=millis();
 if(save.autoMode && !standByQuick && !standBy) {if(!standByShot && save.standByShotTime) {standByShot=1; CMn("standByShot=1");}}} return;}}}}
 
 #if defined led3ColorIndikator_Enable && defined ButtonEnable
@@ -1597,8 +1593,8 @@ return; //без этой херни вечный перезагруз
 }
 #endif // MQTT_SendEnable END
 
-void MotionCountDown() {if(!Motion) return; returnSec(1); uint8_t MotionOnMemory = 3;
-static uint32_t sec; static uint8_t saveVal, roundVal; static boolean min; boolean ctrlTopic=0;
+void MotionCountDown() {static boolean bright; if(!Motion) return; returnSec(1); uint8_t MotionOnMemory = 3;
+static uint32_t sec; static uint8_t saveVal, roundVal; static boolean min;
 #if defined EEPROM_Enable
 MotionOnMemory=save.MotionOnMemory;
 #endif
@@ -1612,7 +1608,7 @@ CM("Выкл. Motion через: "); CM(roundVal); if(min) CMn(" мин."); else
 #if defined MotionSens_Enable && defined PresenceSens_Enable
 if(!Presen.Presence) {Motion=0; CMn("Выкл. Motion по таймеру."); if(save.MASTER_ESP) MQTTStatus("Motion",Motion); timeMotionIgnore=millis();}
 #else
-Motion=0; CMn("Выкл. Motion по таймеру."); if(save.MASTER_ESP) MQTTStatus("Motion",Motion); timeMotionIgnore=millis();
+Motion=0; CMn("Выкл. Motion по таймеру."); if(save.MASTER_ESP) {MQTTStatus("Motion",Motion);} timeMotionIgnore=millis();
 #endif
 }
 
@@ -1693,7 +1689,15 @@ Buz.status();
 for_t(0, 30) for_i(0,sizeof(RELAY_Pin_)) RELAY_State_[t][i]=0;
 #endif
 
-#if defined RelayEnable
+#if defined MotionSens_Enable
+CM("Пин сенсора движения: "); CMn(Move.MotionSens_PIN);
+#endif
+
+#if defined PresenceSens_Enable
+CM("Пин сенсора присутствия: "); CMn(Presen.PresenceSens_PIN);
+#endif
+
+#if defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable
 CM("Пин"); if(sizeof(RELAY_Pin_)>1) CM("ы"); CM(" реле: ");
 for_i(0,sizeof(RELAY_Pin_)) {
 {if(RELAY_Pin_[i]!=nPIN && RELAY_Pin_[i]!=RGBPIN && RELAY_Pin_[i]!=RGBPIN0 && RELAY_Pin_[i]!=RGBPIN1 && RELAY_Pin_[i]!=RGBPIN2
@@ -1721,7 +1725,7 @@ analogWriteFreq(250); // 250Гц ШИМ
 
 #if defined MQTT_SendEnable
 #if defined EEPROM_Enable
-Comm.MASTER_ESP=save.MASTER_ESP;
+save.MASTER_ESP=save.MASTER_ESP;
 #endif
 
 #if not defined EEPROM_Enable
@@ -1773,7 +1777,7 @@ void loop() { //loopspeed();
 #if defined EEPROM_Enable
 SaveData();
 #endif
-#if defined RelayEnable && not defined GlobalHouseSwitch
+#if (defined RelayEnable || defined RGB_LED_Enable || defined RGB_MODULE_LED_Enable) && not defined GlobalHouseSwitch
 SaveRelay();
 #endif
 #if defined ButtonEnable

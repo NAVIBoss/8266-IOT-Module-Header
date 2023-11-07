@@ -239,7 +239,7 @@ case 4: timeLag=20; aBlueLED(127); aRedLED(127); m1=5; break;
 case 5: timeLag=50; dBlueLED(0); dRedLED(0); m1=6; break;
 case 6: timeLag=20; aBlueLED(127); aRedLED(127); m1=7; break;
 case 7: timeLag=50; dBlueLED(0); dRedLED(0); m1=8; break;
-case 8: timeLag=4; dRedLED(1); m1=9; break;}
+case 8: timeLag=4; dRedLED(1); m1=9; m0=1; break;}
 #endif
 #endif
 }
@@ -287,7 +287,7 @@ case 1: case 3: case 5: dRedLED(0); dBlueLED(0); break;
 case 0: aRedLED(127); aBlueLED(127); break;
 case 2: aRedLED(70); aBlueLED(140); break;
 case 4: dRedLED(0); dBlueLED(1); break;} mode++;
-if(mode>6) {mode=0; Sync_I0=0; dBlueLED(1); dRedLED(0);}
+if(mode>6) {mode=0; Sync_I0=0; Sync_I1=0; dBlueLED(1); dRedLED(0);}
 #else
 if(Sync_I0) {switch (mode) { // LED 0 - левый
 case 1: case 3: case 5: dR0LED(0); dG0LED(0); dB0LED(0); break;
@@ -311,7 +311,7 @@ state=!state; dBlueLED(state); mode++; if(mode>6) {mode=0; state=0; Sync_I0=0; d
 #endif
 }
 
-void XIIIMLED::NoWifi() {if(!NoWifi_I) return; static uint32_t timer; static boolean ind; static uint8_t mode;
+void XIIIMLED::NoWifi() {if(!NoWifi_I) return; static uint32_t timer; static uint8_t mode;
 if(millis()-timer<50) return;
 switch(mode){
 case 0: 
